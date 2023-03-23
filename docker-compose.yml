@@ -1,0 +1,55 @@
+version: '3.1'
+services:
+    web:
+        build: ./
+        command: python manage.py runserver 0.0.0.0:8000
+        volumes:
+          - ./:/usr/src/app/
+        ports:
+          - 8000:8000
+
+        env_file:
+            - ./.env.dev
+        depends_on:
+            - postgis
+
+        networks:
+            - gis_net
+
+    postgis:
+        image: postgis/postgis:15-3.3
+        container_name: postgis
+        ports:
+            - "5432:5432"
+        environment:
+            POSTGRES_DB: "gis_db"
+            POSTGRES_USER: "gis_user"
+            POSTGRES_PASSWORD: "gis_user"
+            PGDATA: "/var/lib/postgresql/data/pgdata"
+        volumes:
+            - ./:/var/lib/postgresql/data
+
+        networks:
+            - gis_net
+
+    pgadmin4:
+        image: dpage/pgadmin4
+        container_name: pgadmin4
+        ports:
+            - '5050:80'
+        environment:
+            PGADMIN_DEFAULT_EMAIL: 'admingis@admingis.ry'
+            PGADMIN_DEFAULT_PASSWORD: admin
+            PGADMIN_CONFIG_SERVER_MODE: "False"
+        depends_on:
+            - postgis
+
+        networks:
+            - gis_net
+
+#volumes:
+#  pgdata:
+
+networks:
+  gis_net:
+    driver: bridge
