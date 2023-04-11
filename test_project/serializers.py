@@ -1,5 +1,5 @@
-from rest_framework.serializers import SlugRelatedField, Serializer, FileField, CharField, ValidationError
-from rest_framework_gis.serializers import GeoFeatureModelSerializer
+from rest_framework.serializers import SlugRelatedField, Serializer, FileField, CharField, ValidationError, StringRelatedField
+from rest_framework_gis.serializers import GeoFeatureModelSerializer, GeoModelSerializer
 from .models import Polygon, LineString, Point
 
 
@@ -21,11 +21,32 @@ class PointSerializer(GeoFeatureModelSerializer):
         fields = ['geometry', 'id', 'name']
 
 
+class PointListSerializer(GeoModelSerializer):
+
+    class Meta:
+        model = Point
+        geo_field = 'geometry'
+        # id_field = False
+        fields = ['name', 'geometry',]
+
+
 class PolygonSerializer(GeoFeatureModelSerializer):
 
-    points = SlugRelatedField(
-        allow_null=True, required=False,
-        slug_field='name', many=True, queryset=Point.objects.all()
+    points = StringRelatedField(
+        many=True,
+    )
+
+    class Meta:
+        model = Polygon
+        geo_field = "geometry"
+        id_field = False
+        fields = ['geometry', 'id', 'name', 'points']
+
+
+class PolygonListSerializer(GeoModelSerializer):
+
+    points = StringRelatedField(
+        many=True,
     )
 
     class Meta:

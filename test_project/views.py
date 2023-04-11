@@ -2,7 +2,9 @@ from .serializers import (
     PolygonSerializer,
     LineStringSerializer,
     PointSerializer,
-    FileUploadSerializer
+    FileUploadSerializer,
+    PolygonListSerializer,
+    PointListSerializer
 )
 from rest_framework import viewsets, filters, status
 from rest_framework_gis.filters import DistanceToPointFilter
@@ -32,9 +34,13 @@ class PointViewSet(CreateListModelMixin, viewsets.ModelViewSet):
     filterset_fields = ['name', ]
     search_fields = ['name']
 
+    def list(self, request, *args, **kwargs):
+        serializer = PointListSerializer(self.queryset, many=True)
+        return Response(serializer.data)
+
 
 class PolygonViewSet(viewsets.ModelViewSet):
-    queryset = Polygon.objects.all()
+    queryset = Polygon.objects.prefetch_related('points')
     serializer_class = PolygonSerializer
 
     distance_filter_field = 'geometry'
@@ -43,6 +49,10 @@ class PolygonViewSet(viewsets.ModelViewSet):
     filter_backends = [DistanceToPointFilter, DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['name', ]
     search_fields = ['name']
+
+    def list(self, request, *args, **kwargs):
+        serializer = PolygonListSerializer(self.queryset, many=True)
+        return Response(serializer.data)
 
 
 class FileUploadViewSet(CreateModelMixin, viewsets.ViewSet):
